@@ -36,6 +36,24 @@ namespace Microsoft.OpenApi.Tests.Models
             }
         };
 
+        public static OpenApiSchema ExtremeSchemaNumber = new OpenApiSchema
+        {
+            Title = "title1",
+            MultipleOf = 3,
+            Maximum = Int64.MaxValue,
+            ExclusiveMinimum = true,
+            Minimum = Int64.MinValue,
+            Default = new OpenApiLong(Int64.MaxValue),
+            Type = "integer",
+            Format = "int64",
+
+            Nullable = true,
+            ExternalDocs = new OpenApiExternalDocs
+            {
+                Url = new Uri("http://example.com/externalDocs")
+            }
+        };
+
         public static OpenApiSchema AdvancedSchemaObject = new OpenApiSchema
         {
             Title = "title1",
@@ -262,6 +280,35 @@ namespace Microsoft.OpenApi.Tests.Models
             expected = expected.MakeLineBreaksEnvironmentNeutral();
             actual.Should().Be(expected);
         }
+
+        [Fact]
+        public void SerializeExtremeSchemaNumberAsV3JsonWorks()
+        {
+            // Arrange
+            var expected = @"{
+  ""title"": ""title1"",
+  ""multipleOf"": 3,
+  ""maximum"": 9223372036854775807,
+  ""minimum"": -9223372036854775808,
+  ""exclusiveMinimum"": true,
+  ""type"": ""integer"",
+  ""format"": ""int64"",
+  ""default"": 9223372036854775807,
+  ""nullable"": true,
+  ""externalDocs"": {
+    ""url"": ""http://example.com/externalDocs""
+  }
+}";
+
+            // Act
+            var actual = ExtremeSchemaNumber.SerializeAsJson(OpenApiSpecVersion.OpenApi3_0);
+
+            // Assert
+            actual = actual.MakeLineBreaksEnvironmentNeutral();
+            expected = expected.MakeLineBreaksEnvironmentNeutral();
+            actual.Should().Be(expected);
+        }
+
 
         [Fact]
         public void SerializeAdvancedSchemaObjectAsV3JsonWorks()
