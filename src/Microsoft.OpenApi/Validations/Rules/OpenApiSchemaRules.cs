@@ -15,6 +15,37 @@ namespace Microsoft.OpenApi.Validations.Rules
     public static class OpenApiSchemaRules
     {
         /// <summary>
+        /// Validates Schema Discriminator
+        /// </summary>
+        public static ValidationRule<OpenApiSchema> ValidateSchemaDiscriminator =>
+            new ValidationRule<OpenApiSchema>(
+                (context, schema) =>
+                {
+                    // discriminator
+                    context.Enter("discriminator");
+
+                    if (schema.Reference != null && schema.Discriminator != null)
+                    {
+                        if (!schema.Required.Contains(schema.Discriminator?.PropertyName))
+                        {
+                            context.CreateError(nameof(ValidateSchemaDiscriminator),
+                                                string.Format(SRResource.Validation_SchemaRequiredFieldListMustContainThePropertySpecifiedInTheDiscriminator,
+                                                                                schema.Reference.Id, schema.Discriminator.PropertyName));
+                        }
+                    }
+
+                    context.Exit();
+                });
+    }
+
+    /// <summary>
+    /// The validation rules for ensuring that data elements match the <see cref="OpenApiSchema"/> definition.
+    /// This rule is not included in the default ruleset as the spec only says that data SHOULD match.  It is not a MUST. 
+    /// Also, when schemas are $ref'd then the examples may not have valid data native data types 
+    /// </summary>
+    public static class OpenApiSchemaDataRules
+    {
+        /// <summary>
         /// Validate the data matches with the given data type.
         /// </summary>
         public static ValidationRule<OpenApiSchema> SchemaMismatchedDataType =>
@@ -51,29 +82,6 @@ namespace Microsoft.OpenApi.Validations.Rules
                             context.Enter(i.ToString());
                             RuleHelpers.ValidateDataTypeMismatch(context, nameof(SchemaMismatchedDataType), schema.Enum[i], schema);
                             context.Exit();
-                        }
-                    }
-
-                    context.Exit();
-                });
-
-        /// <summary>
-        /// Validates Schema Discriminator
-        /// </summary>
-        public static ValidationRule<OpenApiSchema> ValidateSchemaDiscriminator =>
-            new ValidationRule<OpenApiSchema>(
-                (context, schema) =>
-                {
-                    // discriminator
-                    context.Enter("discriminator");
-
-                    if (schema.Reference != null && schema.Discriminator != null)
-                    {
-                        if (!schema.Required.Contains(schema.Discriminator?.PropertyName))
-                        {
-                            context.CreateError(nameof(ValidateSchemaDiscriminator),
-                                                string.Format(SRResource.Validation_SchemaRequiredFieldListMustContainThePropertySpecifiedInTheDiscriminator,
-                                                                                schema.Reference.Id, schema.Discriminator.PropertyName));
                         }
                     }
 
